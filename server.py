@@ -1,8 +1,13 @@
 #!/usr/bin/env python
-
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+from subprocess import call
+
+# This class will handles any incoming request from the browser
+
+port_number = 8000
 
 class S(BaseHTTPRequestHandler):
+  
   def _set_headers(self):
     self.send_response(200)
     self.send_header('Content-type', 'text/html')
@@ -10,26 +15,20 @@ class S(BaseHTTPRequestHandler):
 
   def do_GET(self):
     self._set_headers()
+    
+    # call(['yowsup-cli', 'demos', '-l13126840113:QMNc7MEoZWibWFDS436uFXgawCs=', '-s', '31628959809', 'why'])
+    # ph_n = '31628959809'
+    # msg_c = 'why'
+    # message_send(self, ph_n, msg_c)
+    
     self.wfile.write("<html><body><h1>&&</h1></body></html>")
+    return
 
-  def do_HEAD(self):
-    self._set_headers()
+try:
+  server = HTTPServer(('', port_number), S)
+  print 'Started HTTP server on port', port_number
+  server.serve_forever()
 
-  def do_POST(self):
-    # does not do anything with posted data
-    self._set_headers()
-    self.wfile.write("<html><body><h1>pp</h1></body></html>")
-
-def run(server_class=HTTPServer, handler_class=S, port=8000):
-  server_address = ('', port)
-  httpd = server_class(server_address, handler_class)
-  print 'starting httpd'
-  httpd.serve_forever()
-
-if __name__ == '__main__':
-  from sys import argv
-
-  if len(argv) == 2:
-    run(port=int(argv[1]))
-  else:
-    run()
+except KeyboardInterrupt:
+  print '^C received, shutting down server'
+  server.socket.close()
