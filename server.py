@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+from urlparse import urlparse, parse_qs
 
 from layer import IPerformLayer
 
@@ -16,16 +17,29 @@ import traceback
 import threading
 import multiprocessing
 
-# This class will handles any incoming request from the browser
+# --- (https://github.com/tgalal/yowsup/issues/671#issuecomment-77545896)
+logging.basicConfig(level=logging.DEBUG)
 
 port_number = 8000
-number = "13126840113"
-pwd = "" # Put the password here - JBG
+number = "" # fill in with whatsapp registered number
+pwd = "" # && password
 stack = None
 
 def send_message(number, content):
   global stack
   stack.broadcastEvent(YowLayerEvent(IPerformLayer.SEND_MESSAGE, number=number, content=content))
+
+def send_image(number, path, caption=None):
+  global stack
+  stack.broadcastEvent(YowLayerEvent(IPerformLayer.SEND_IMAGE, number=number, path=path, caption=caption))
+
+def group_create(group_name, jids):
+  global stack
+  stack.broadcastEvent(YowLayerEvent(IPerformLayer.GROUP_CREATE, group_name=group_name, jids=jids))
+
+def group_invite(group_jid, jids):
+  global stack
+  stack.broadcastEvent(YowLayerEvent(IPerformLayer.GROUP_INVITE, group_jid=group_jid, jids=jids))
 
 def start_whatsapp():
   stackBuilder = YowStackBuilder()
@@ -54,8 +68,42 @@ class S(BaseHTTPRequestHandler):
 
   def do_GET(self):
     self._set_headers()
-    send_message('31611751966', 'Hello from the web.')
-    self.wfile.write("done.")
+    
+    # --- send text to number
+    if self.path.startswith('/send-msg?'):
+      query = parse_qs(urlparse(self.path).query)
+      send_message(query['num'][0], query['msg'][0])
+      # send_message('xxx', 'Hello from the web.')
+      self.wfile.write('message sent')
+    
+    # --- send image to number
+    elif self.path.startswith('/send-img?'):
+      query = parse_qs(urlparse(self.path).query)
+      send_image(query['group-num'][0], query['path'][0], query['caption'][0])
+      # send_image('xxx-ttt/group-jid', 'path/to-file.ext', 'caption')
+      self.wfile.write('message sent')
+    
+    # --- create and invite to group
+    elif self.path.startswith ('/group-create?'):
+      query = parse_qs(urlparse(self.path).query)
+      group_create(query['group-name'][0], query['nums'][0])
+      # group_create('subject', 'xxx,xxx,xxx')
+      self.wfile.write('group made && invitation sent')
+    
+    # --- invite to group
+    elif self.path.startswith('/group-invite?'):
+      query = parse_qs(urlparse(self.path).query)
+      group_invite(query['group-id'][0], query['nums'][0])
+      # group_invite('xxx-ttt/group-jid', 'xxx,xxx,xxx')
+      self.wfile.write('invitation sent')
+    
+    # --- send text to group
+    elif self.path.startswith('/group-msg?'):
+      query = parse_qs(urlparse(self.path).query)
+      send_message(query['group-id'][0], query['msg'][0])
+      # send_message('xxx-ttt/group-jid', 'msg')
+      self.wfile.write('message to group sent')
+    
     return
 
 if __name__ == "__main__":
