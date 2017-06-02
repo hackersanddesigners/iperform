@@ -21,8 +21,8 @@ import multiprocessing
 logging.basicConfig(level=logging.DEBUG)
 
 port_number = 8000
-number = "" # fill in with whatsapp registered number
-pwd = "" # && password
+number = "13126840113" # fill in with whatsapp registered number
+pwd = "QMNc7MEoZWibWFDS436uFXgawCs=" # && password
 stack = None
 
 def send_message(number, content):
@@ -81,7 +81,7 @@ class S(BaseHTTPRequestHandler):
       query = parse_qs(urlparse(self.path).query)
       send_image(query['group-num'][0], query['path'][0], query['caption'][0])
       # send_image('xxx-ttt/group-jid', 'path/to-file.ext', 'caption')
-      self.wfile.write('message sent')
+      self.wfile.write('image sent')
     
     # --- create and invite to group
     elif self.path.startswith ('/group-create?'):

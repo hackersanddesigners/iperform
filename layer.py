@@ -16,8 +16,6 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 
 class IPerformLayer(YowInterfaceLayer):
-  SEND_MESSAGE = "org.openwhatsapp.yowsup.event.iperform.send_message"
-  PROP_MESSAGES = "org.openwhatsapp.yowsup.prop.sendclient.queue"
 
   def __init__(self):
     super(IPerformLayer, self).__init__()
@@ -35,6 +33,8 @@ class IPerformLayer(YowInterfaceLayer):
 
     return Jid.normalize(calias)
 
+  SEND_MESSAGE = "org.openwhatsapp.yowsup.event.iperform.send_message"
+  PROP_MESSAGES = "org.openwhatsapp.yowsup.prop.sendclient.queue"
   @EventCallback(SEND_MESSAGE)
   def onSendMessage(self, layerEvent):
     print "Got the message event."
@@ -54,51 +54,43 @@ class IPerformLayer(YowInterfaceLayer):
       content, to = Jid.normalize(number))
     self.toLower(outgoingMessage) 
 
+  SEND_IMAGE = "org.openwhatsapp.yowsup.event.iperform.send_image"
+  @EventCallback(SEND_IMAGE)
+  def onSendImage(self, layerEvent):
+    # if self.assertConnected():
+    number = layerEvent.getArg("number")
+    path = layerEvent.getArg("path")
+    caption = layerEvent.getArg("caption")
+    jid = self.aliasToJid(number)
+    
+    entity = RequestUploadIqProtocolEntity(RequestUploadIqProtocolEntity.MEDIA_TYPE_IMAGE, filePath=path)
+    successFn = lambda successEntity, originalEntity: self.onRequestUploadResult(jid, path, successEntity, originalEntity, caption)
+    errorFn = lambda errorEntity, originalEntity: self.onRequestUploadError(jid, path, errorEntity, originalEntity)
+
+    self._sendIq(entity, successFn, errorFn)
+  
+  global senders
+  senders = []
   @ProtocolEntityCallback("message")
   def onMessage(self, messageProtocolEntity):
     print "onMessage"
+
     # send receipt otherwise we keep receiving the same message over and over
-        
     if True:
       receipt = OutgoingReceiptProtocolEntity(messageProtocolEntity.getId(), messageProtocolEntity.getFrom(), 'read', messageProtocolEntity.getParticipant())
-      print "FROM " + messageProtocolEntity.getFrom()
-            
+      # print "FROM " + messageProtocolEntity.getFrom()
+      
+      sender = messageProtocolEntity.getFrom()
+      senders.append(sender)
+      print 'numbers:', senders
+
       self.toLower(receipt)
-    
+
     @ProtocolEntityCallback("receipt")
     def onReceipt(self, entity):
       print "onReceipt"
       ack = OutgoingAckProtocolEntity(entity.getId(), "receipt", entity.getType(), entity.getFrom())
       self.toLower(ack)
-
-  
-  SEND_IMAGE = "org.openwhatsapp.yowsup.event.iperform.send_image"
-
-  @EventCallback(SEND_IMAGE)
-  def onSendImage(self, layerEvent):
-    number = layerEvent.getArg("number")
-    path = layerEvent.getArg("path")
-    caption = layerEvent.getArg("caption")
-    self.media_send(number, path, RequestUploadIqProtocolEntity.MEDIA_TYPE_IMAGE)
-
-  def media_send(self, number, path, mediaType, caption = None):
-    # if self.assertConnected():
-    jid = self.aliasToJid(number)
-    entity = RequestUploadIqProtocolEntity(mediaType, filePath=path)
-    successFn = lambda successEntity, originalEntity: self.onRequestUploadResult(jid, mediaType, path, successEntity, originalEntity, caption)
-    errorFn = lambda errorEntity, originalEntity: self.onRequestUploadError(jid, path, errorEntity, originalEntity)
-    self._sendIq(entity, successFn, errorFn)
-
-    self._sendIq(entity, successFn, errorFn)
-
-  def doSendMedia(self, mediaType, filePath, url, to, ip = None, caption = None):
-    if mediaType == RequestUploadIqProtocolEntity.MEDIA_TYPE_IMAGE:
-      entity = ImageDownloadableMediaMessageProtocolEntity.fromFilePath(filePath, url, ip, to, caption = caption)
-    elif mediaType == RequestUploadIqProtocolEntity.MEDIA_TYPE_AUDIO:
-      entity = AudioDownloadableMediaMessageProtocolEntity.fromFilePath(filePath, url, ip, to)
-    elif mediaType == RequestUploadIqProtocolEntity.MEDIA_TYPE_VIDEO:
-      entity = VideoDownloadableMediaMessageProtocolEntity.fromFilePath(filePath, url, ip, to, caption = caption)
-    self.toLower(entity)
 
   GROUP_CREATE = "org.openwhatsapp.yowsup.event.iperform.group_create"
   @EventCallback(GROUP_CREATE)
@@ -125,13 +117,16 @@ class IPerformLayer(YowInterfaceLayer):
 
   # --- Callbacks
   
-  def onRequestUploadResult(self, jid, mediaType, filePath, resultRequestUploadIqProtocolEntity, requestUploadIqProtocolEntity, caption = None):
+  def onRequestUploadResult(self, jid, filePath, resultRequestUploadIqProtocolEntity, requestUploadIqProtocolEntity, caption = None):
+    if requestUploadIqProtocolEntity.mediaType == RequestUploadIqProtocolEntity.MEDIA_TYPE_AUDIO:
+      doSendFn = self.doSendAudio
+    else:
+      doSendFn = self.doSendImage
 
     if resultRequestUploadIqProtocolEntity.isDuplicate():
-      self.doSendMedia(mediaType, filePath, resultRequestUploadIqProtocolEntity.getUrl(), jid,
-                       resultRequestUploadIqProtocolEntity.getIp(), caption)
+      doSendFn(filePath, resultRequestUploadIqProtocolEntity.getUrl(), jid, resultRequestUploadIqProtocolEntity.getIp(), caption)
     else:
-      successFn = lambda filePath, jid, url: self.doSendMedia(mediaType, filePath, url, jid, resultRequestUploadIqProtocolEntity.getIp(), caption)
+      successFn = lambda filePath, jid, url: doSendFn(filePath, url, jid, resultRequestUploadIqProtocolEntity.getIp(), caption)
       mediaUploader = MediaUploader(jid, self.getOwnJid(), filePath,
                                     resultRequestUploadIqProtocolEntity.getUrl(),
                                     resultRequestUploadIqProtocolEntity.getResumeOffset(),
@@ -148,3 +143,7 @@ class IPerformLayer(YowInterfaceLayer):
     sys.stdout.write("%s => %s, %d%% \r" % (os.path.basename(filePath), jid, progress))
     sys.stdout.flush()
 
+  def doSendImage(self, filePath, url, to, ip = None, caption = None):
+    entity = ImageDownloadableMediaMessageProtocolEntity.fromFilePath(filePath, url, ip, to, caption = caption)
+    self.toLower(entity)
+    print entity
