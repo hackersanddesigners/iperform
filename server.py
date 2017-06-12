@@ -21,8 +21,8 @@ import multiprocessing
 logging.basicConfig(level=logging.DEBUG)
 
 port_number = 8000
-number = "13126840113" # fill in with whatsapp registered number
-pwd = "QMNc7MEoZWibWFDS436uFXgawCs=" # && password
+number = "" # fill in with whatsapp registered number
+pwd = "" # && password
 stack = None
 
 def send_message(number, content):
@@ -92,7 +92,7 @@ class S(BaseHTTPRequestHandler):
     if self.path.startswith('/send-msg'):
       data = parse_qs(self.rfile.read(int(self.headers['Content-Length'])))
       send_message(data['num'][0], data['msg'][0])
-      # send_message('xxx', 'Hello from the web.')
+      # send_message('xxx', 'Hello from the web')
       self.wfile.write('message sent')
  
     # --- send text to group

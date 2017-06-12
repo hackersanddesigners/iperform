@@ -40,7 +40,7 @@ class IPerformLayer(YowInterfaceLayer):
     print "Got the message event."
     number = layerEvent.getArg("number")
     content = layerEvent.getArg("content")
-    # --- trying to filter b/t personal number or group number
+    # --- trying to filter b/t personal number and group number
     for number in self.getProp(self.__class__.PROP_MESSAGES, []):
       phone, content = number
       if '@' in phone:
@@ -68,9 +68,11 @@ class IPerformLayer(YowInterfaceLayer):
     errorFn = lambda errorEntity, originalEntity: self.onRequestUploadError(jid, path, errorEntity, originalEntity)
 
     self._sendIq(entity, successFn, errorFn)
-  
+
+  # --- collect phone numbers from received messages
   global senders
   senders = []
+  # ---
   @ProtocolEntityCallback("message")
   def onMessage(self, messageProtocolEntity):
     print "onMessage"
@@ -78,7 +80,6 @@ class IPerformLayer(YowInterfaceLayer):
     # send receipt otherwise we keep receiving the same message over and over
     if True:
       receipt = OutgoingReceiptProtocolEntity(messageProtocolEntity.getId(), messageProtocolEntity.getFrom(), 'read', messageProtocolEntity.getParticipant())
-      # print "FROM " + messageProtocolEntity.getFrom()
       
       sender = messageProtocolEntity.getFrom()
       senders.append(sender)
@@ -91,7 +92,7 @@ class IPerformLayer(YowInterfaceLayer):
       print "onReceipt"
       ack = OutgoingAckProtocolEntity(entity.getId(), "receipt", entity.getType(), entity.getFrom())
       self.toLower(ack)
-
+  
   GROUP_CREATE = "org.openwhatsapp.yowsup.event.iperform.group_create"
   @EventCallback(GROUP_CREATE)
   def onGroupsCreate(self, layerEvent):
