@@ -7,7 +7,12 @@ Whatsapp chatbot sending choreographic instructions to dancers through bash scri
 
 `git clone` this repo. Do not install Yowsup through `pip install yowsup2`, as you often have to manually patch the library because of Whatsapp’s new API changes. Yowsup is not an official whatsapp client, after all, so hacking is mandatory.
 
-Do `cd yowsup` from your project’s root fodler, and run `python setup.py install` to install all dependencies.
+From your project’s root folder:
+
+	cd yowsup
+	sudo python setup.py install
+
+to install all dependencies.
 
 ### Registration of a new number
 
@@ -16,11 +21,9 @@ Register a new Whatsapp number and get a registration code as password. As of Ju
 	cd yowsup
 	sudo yowsup-cli registration --env android --requestcode sms -p (your phone number without + or 00) --cc xx --mcc xxx --mnc xx -r voice --debug
 
-[check this](https://github.com/tgalal/yowsup/wiki/yowsup-cli-2.0#yowsup-cli-registration) to look up the `--cc`, `--mcc` and `--mnc` of your phone number.
-
-Using `-r voice` is the most viable way to actually receive a registration code from Whatsapp, through a voice bot.
-
-Adding `--debug` let you see what’s going on in case of problems.
+* [check this](https://github.com/tgalal/yowsup/wiki/yowsup-cli-2.0#yowsup-cli-registration) to look up the `--cc`, `--mcc` and `--mnc` of your phone number.
+* using `-r voice` is the most viable way to actually receive a registration code from Whatsapp, through a voice bot.
+* adding `--debug` let you see what’s going on in case of problems.
 
 Once you get your registration code, do
 
@@ -30,7 +33,7 @@ The current repo has a patch to work with `--env android`, that replaces `env_an
 
 After you can:
 
-* add your bot’s phone number and password in `server.py` ([line 24 and 25](https://github.com/hackersanddesigners/iperform/blob/master/server.py#L24)) and in `layer.py` (line 26)
+* add your bot’s phone number and password in `server.py` ([line 24 and 25](https://github.com/hackersanddesigners/iperform/blob/master/server.py#L24)) and in `layer.py` ([line 25](https://github.com/hackersanddesigners/iperform/blob/master/layer.py#L25))
 * then run `python server.py` from your project’s root folder.
 
 ## Commands
@@ -62,4 +65,4 @@ You can grab the `group-id` of a Whatsapp group from the terminal debug output o
 
 You only need the two series of numbers—`31627060041-1010124455`.
 
-As a general comment, be aware that the program might stop working as Whatsapp changes its API. Look up the [/issues](https://github.com/tgalal/yowsup/issues) section of Yowsup on github, to catch up on the latest news.
+As a general comment, be aware that the program might stop working as Whatsapp changes its API. Look up the [/issues](https://github.com/tgalal/yowsup/issues) section of Yowsup, to catch up on the latest news.
