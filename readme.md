@@ -1,11 +1,11 @@
 iperform
 ========
 
-Whatsapp chatbot sending choreographic instructions to dancers through bash scripts. Built on top of [Yowsup](https://github.com/tgalal/yowsup).
+WhatsApp chatbot sending choreographic instructions to dancers through bash scripts. Built on top of [Yowsup](https://github.com/tgalal/yowsup).
 
 ## Setup
 
-`git clone` this repo. Do not install Yowsup through `pip install yowsup2`, as you often have to manually patch the library because of Whatsapp’s new API changes. Yowsup is not an official whatsapp client, after all, so hacking is mandatory.
+`git clone` this repo. Do not install Yowsup through `pip install yowsup2`, as you often have to manually patch the library because of WhatsApp’s new API changes. Yowsup is not an official WhatsApp client, after all, so hacking is mandatory.
 
 From your project’s root folder:
 
@@ -16,13 +16,13 @@ to install all dependencies.
 
 ### Registration of a new number
 
-Register a new Whatsapp number and get a registration code as password. As of June 2016, use this syntax:
+Register a new WhatsApp number and get a registration code as password. As of June 2016, use this syntax:
 
 	cd yowsup
 	sudo yowsup-cli registration --env android --requestcode sms -p (your phone number without + or 00) --cc xx --mcc xxx --mnc xx -r voice --debug
 
 * [check this](https://github.com/tgalal/yowsup/wiki/yowsup-cli-2.0#yowsup-cli-registration) to look up the `--cc`, `--mcc` and `--mnc` of your phone number.
-* using `-r voice` is the most viable way to actually receive a registration code from Whatsapp, through a voice bot.
+* using `-r voice` is the most viable way to actually receive a registration code from WhatsApp, through a voice bot.
 * adding `--debug` let you see what’s going on in case of problems.
 
 Once you get your registration code, do
@@ -58,11 +58,11 @@ While running `python server.py`, open a new terminal session and use the follow
 
 ### Info
 
-You can grab the `group-id` of a Whatsapp group from the terminal debug output of `python server.py`, right after you create a new whatsapp group: it looks something like `31627060041-1010124455@g.us`:
+You can grab the `group-id` of a WhatsApp group from the terminal debug output of `python server.py`, right after you create a new WhatsApp group: it looks something like `31627060041-1010124455@g.us`:
 
-* the first bunch of numbers correspond to the whatsapp number which created the group, 
+* the first bunch of numbers correspond to the WhatsApp number which created the group, 
 * whereas the second part is the timestamp of when the group was created. 
 
 You only need the two series of numbers—`31627060041-1010124455`.
 
-As a general comment, be aware that the program might stop working as Whatsapp changes its API. Look up the [/issues](https://github.com/tgalal/yowsup/issues) section of Yowsup, to catch up on the latest news.
+As a general comment, be aware that the program might stop working as WhatsApp changes its API. Look up the [/issues](https://github.com/tgalal/yowsup/issues) section of Yowsup, to catch up on the latest news.
