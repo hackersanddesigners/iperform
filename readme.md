@@ -58,10 +58,10 @@ While running `python server.py`, open a new terminal session and use the follow
 
 ### Info
 
-You can grab the `group-id` of a Whatsapp group from the terminal debug output of `python server.py`, right after you created a new whatsapp group: it looks something like `31627060041-1010124455@g.us`:
+You can grab the `group-id` of a Whatsapp group from the terminal debug output of `python server.py`, right after you create a new whatsapp group: it looks something like `31627060041-1010124455@g.us`:
 
 * the first bunch of numbers correspond to the whatsapp number which created the group, 
-* whereas the second is the timestamp of when the group was created. 
+* whereas the second part is the timestamp of when the group was created. 
 
 You only need the two series of numbers—`31627060041-1010124455`.
 
