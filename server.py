@@ -3,6 +3,7 @@ from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 from urlparse import urlparse, parse_qs
 
 from layer import IPerformLayer
+from session import IPerformSession
 
 from yowsup.stacks import  YowStackBuilder
 from yowsup.layers.auth import AuthError
@@ -16,14 +17,16 @@ import logging
 import traceback
 import threading
 import multiprocessing
+import json
 
 # --- (https://github.com/tgalal/yowsup/issues/671#issuecomment-77545896)
 logging.basicConfig(level=logging.DEBUG)
 
 port_number = 8000
-number = "" # fill in with whatsapp registered number
-pwd = "" # && password
+number = "13126840113" # fill in with whatsapp registered number
+pwd = "QMNc7MEoZWibWFDS436uFXgawCs=" # && password
 stack = None
+session = None
 
 def send_message(number, content):
   global stack
@@ -42,12 +45,16 @@ def group_invite(group_jid, jids):
   stack.broadcastEvent(YowLayerEvent(IPerformLayer.GROUP_INVITE, group_jid=group_jid, jids=jids))
 
 def start_whatsapp():
+  global stack, number, pwd, session
+
   stackBuilder = YowStackBuilder()
-  global stack
   stack = stackBuilder\
     .pushDefaultLayers(True)\
     .push(IPerformLayer)\
     .build()
+
+  session = IPerformSession()
+  stack.broadcastEvent(YowLayerEvent(IPerformLayer.INIT_SESSION, session=session))
 
   credentials = (number, pwd)
   stack.setCredentials(credentials)
@@ -82,7 +89,15 @@ class S(BaseHTTPRequestHandler):
       group_invite(query['group-id'][0], query['nums'][0])
       # group_invite('xxx-ttt/group-jid', 'xxx,xxx,xxx')
       self.wfile.write('invitation sent')
-    
+
+    # --- get groups
+    elif self.path.startswith('/groups'):
+      #query = parse_qs(urlparse(self.path).query)
+      #group_invite(query['group-id'][0], query['nums'][0])
+      # group_invite('xxx-ttt/group-jid', 'xxx,xxx,xxx')
+      global session
+      self.wfile.write(json.dumps(session.sub2gid))
+
     return
 
   def do_POST(self):
@@ -92,7 +107,7 @@ class S(BaseHTTPRequestHandler):
     if self.path.startswith('/send-msg'):
       data = parse_qs(self.rfile.read(int(self.headers['Content-Length'])))
       send_message(data['num'][0], data['msg'][0])
-      # send_message('xxx', 'Hello from the web')
+      #send_message('31611751966', 'Hello from the web')
       self.wfile.write('message sent')
  
     # --- send text to group
