@@ -121,7 +121,7 @@ class IPerformLayer(YowInterfaceLayer):
       if sender not in self.session.senders and jid not in self.session.sub2gid.values():
         if len(self.session.senders) % 5 == 0:
           # Create a new group - JBG
-          self.session.group = "iperform-" + str(int(round(time.time())))
+          self.session.group = "lavalab2-" + str(int(round(time.time())))
           entity = CreateGroupsIqProtocolEntity(self.session.group, participants=[self.aliasToJid(sender)])
           self.toLower(entity)
           # This will re-fetch subject to group id mappings, get new group id - JBG
